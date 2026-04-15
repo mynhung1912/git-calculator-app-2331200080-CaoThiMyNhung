@@ -22,8 +22,8 @@ jobs:
     needs: test
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false # Quan trọng: Để nếu 1 cái lỗi, các cái khác vẫn chạy tiếp
       matrix:
-        # Chỗ này giúp tạo ra 3 máy ảo chạy song song
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
@@ -31,15 +31,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm' # Thêm cache để chạy nhanh và ổn định hơn
+
       - run: npm install
 
       - name: Build Electron App
-        # Đoạn này là "đầu não" để sửa lỗi của bạn:
-        run: |
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            npm run build -- --win
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            npm run build -- --mac
-          else
-            npm run build -- --linux
-          fi
+        # Dùng lệnh này để tự động nhận diện hệ điều hành của máy ảo
+        run: npm run build -- -${{ matrix.os == 'windows-latest' && 'w' || matrix.os == 'macos-latest' && 'm' || 'l' }}
