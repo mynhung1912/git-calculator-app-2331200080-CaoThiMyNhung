@@ -1,25 +1,5 @@
-name: Build, Test, and Release
-
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm install
-      - run: npm test
-
-  build:
-    needs: test # Chỉ build nếu test đã vượt qua thành công
+build:
+    needs: test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -32,4 +12,12 @@ jobs:
           node-version: '20'
       - run: npm install
       - name: Build Electron App
-        run: npm run build ${{ matrix.os == 'windows-latest' && 'win' || matrix.os == 'macos-latest' && 'mac' || 'linux' }}
+        # Lệnh dưới đây đã được sửa để phù hợp với electron-builder
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            npm run build -- --win
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            npm run build -- --mac
+          else
+            npm run build -- --linux
+          fi
