@@ -1,8 +1,29 @@
-build:
+name: Build, Test, and Release
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npm test
+
+  build:
     needs: test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        # Chỗ này giúp tạo ra 3 máy ảo chạy song song
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
@@ -11,8 +32,9 @@ build:
         with:
           node-version: '20'
       - run: npm install
+
       - name: Build Electron App
-        # Lệnh dưới đây đã được sửa để phù hợp với electron-builder
+        # Đoạn này là "đầu não" để sửa lỗi của bạn:
         run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             npm run build -- --win
